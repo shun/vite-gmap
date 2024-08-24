@@ -73,8 +73,8 @@ export const GMap: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (mapLoaded && mapInstance) {
-      pins.map((pin) => {
+    if (mapLoaded && mapInstance && infoWindow) {
+      pins.forEach((pin) => {
         const pinElement = new google.maps.marker.PinElement({
           scale: 1.0, // マーカーの大きさ( 等倍: 1)
           background: "#e44631", // マーカーの色
@@ -82,12 +82,14 @@ export const GMap: React.FC = () => {
           glyphColor: "#ffffff", // グリフの色
           glyph: pin.id,
         });
+
         const markerElement = new google.maps.marker.AdvancedMarkerElement({
           position: { lat: pin.lat, lng: pin.lng },
           map: mapInstance,
           title: pin.name,
-          content: pinElement.element, //document.createTextNode(pin.name),
+          content: pinElement.element, // PinElementのHTML要素を設定
         });
+
         markerElement.addListener("click", () => {
           if (infoWindow) {
             infoWindow.close();
@@ -97,7 +99,7 @@ export const GMap: React.FC = () => {
         });
       });
     }
-  }, [mapLoaded, mapInstance]);
+  }, [mapLoaded, mapInstance, infoWindow]); // infoWindow を依存関係に追加
 
   return <div ref={mapRef} style={mapContainerStyle}></div>;
 };
