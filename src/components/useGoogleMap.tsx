@@ -42,8 +42,8 @@ export const useGoogleMap = (center: google.maps.LatLngLiteral, pins: Pin[], toa
     return pins.map((pin) => {
       const pinElement = new google.maps.marker.PinElement({
         scale: 1.0,
-        background: "#e44631",
-        borderColor: "#b01500",
+        background: pin.color, //"#e44631",
+        borderColor: pin.color, //"#b01500",
         glyphColor: "#ffffff",
         glyph: pin.delivery_order,
       });
