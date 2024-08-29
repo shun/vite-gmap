@@ -104,6 +104,7 @@ export const useGoogleMap = (center: google.maps.LatLngLiteral, pins: Pin[], toa
 
     google.maps.event.addListener(drawingManager, "polygoncomplete", (polygon) => {
       polygon.setEditable(true);
+      polygon.setOptions({draggable: true});
       polygon.addListener("click", () => setSelectedPolygon(polygon));
 
       const pinsInsidePolygon = markers.filter((marker) =>
