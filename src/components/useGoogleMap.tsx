@@ -1,14 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader } from "@googlemaps/js-api-loader";
-
-interface Pin {
-  id: string;
-  name: string;
-  lat: number;
-  lng: number;
-  status: "new" | "active" | "inactive";
-  course: string;
-}
+import type {Pin} from "./useSpreadsheetData"
 
 export const useGoogleMap = (center: google.maps.LatLngLiteral, pins: Pin[], toast: any) => {
   const mapRef = useRef<HTMLDivElement | null>(null);
@@ -53,7 +45,7 @@ export const useGoogleMap = (center: google.maps.LatLngLiteral, pins: Pin[], toa
         background: "#e44631",
         borderColor: "#b01500",
         glyphColor: "#ffffff",
-        glyph: pin.id,
+        glyph: pin.delivery_order,
       });
 
       const markerElement = new google.maps.marker.AdvancedMarkerElement({
