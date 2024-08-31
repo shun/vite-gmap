@@ -17,7 +17,7 @@ export const GMap: FC<GMapProps> = (props) => {
   const { sheetId, sheetName } = props;
   const toast = useToast();
   const { pins, loading, error } = useSpreadsheetData(sheetId, sheetName);
-  const { mapRef, handlePolygonDelete, handleCopyPins, selectedPolygon, setPolygonColor, polygonColor, handleUndo } = useGoogleMap(
+  const { mapRef, handlePolygonDelete, handleCopyPins, selectedPolygon, setPolygonColor, polygonColor, handleUndo, handleSetPolygonColor } = useGoogleMap(
     center,
     pins,
     toast
@@ -30,7 +30,7 @@ export const GMap: FC<GMapProps> = (props) => {
     <Box>
       <Box ref={mapRef} id="map" style={{ width: "100%", height: "100vh" }}></Box>
       <Box position="absolute" top="80px" right="20px" zIndex="10" display="flex" flexDirection="column" gap={2}>
-        <Input type="color" onChange={(e) => setPolygonColor(e.target.value)} value={polygonColor} mb={2} />
+        <Input type="color" onChange={(e) => handleSetPolygonColor(e.target.value)} value={polygonColor} mb={2} />
         <Button colorScheme="red" onClick={handlePolygonDelete} isDisabled={!selectedPolygon}>
           選択したポリゴンを削除
         </Button>

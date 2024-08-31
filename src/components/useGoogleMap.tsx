@@ -114,6 +114,30 @@ export const useGoogleMap = (
     }
   };
 
+  const handleSetPolygonColor = (color: string) => {
+    if (selectedPolygon) {
+      selectedPolygon.setOptions({
+        strokeColor: color,
+        fillColor: color,
+      });
+
+      // 保存するために polygonPaths を更新
+      setPolygonPaths((prevPolygonPaths) =>
+        prevPolygonPaths.map((polygonPath) =>
+          polygonPath.polygon === selectedPolygon
+            ? { polygon: selectedPolygon, path: polygonPath.path }
+            : polygonPath
+        )
+      );
+    }
+  };
+
+  useEffect(() => {
+    if (selectedPolygon) {
+      const currentColor = selectedPolygon.get("fillColor") || "#FF0000";
+      setPolygonColor(currentColor);
+    }
+  }, [selectedPolygon]);
 
   return {
     mapRef,
@@ -124,5 +148,6 @@ export const useGoogleMap = (
     setPolygonColor,
     polygonColor,
     handleUndo,
+    handleSetPolygonColor,
   };
 };
