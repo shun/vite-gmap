@@ -1,14 +1,8 @@
 import { useEffect, useState } from "react";
 import type { Pin } from "./useSpreadsheetData";
 
-export const useMarkers = (
-  map: google.maps.Map | null,
-  pins: Pin[],
-  toast: any
-) => {
-  const [markerElements, setMarkerElements] = useState<
-    google.maps.marker.AdvancedMarkerElement[]
-  >([]);
+export const useMarkers = (map: google.maps.Map | null, pins: Pin[]) => {
+  const [markerElements, setMarkerElements] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
 
   useEffect(() => {
     if (!map) return;

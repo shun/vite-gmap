@@ -1,26 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, Dispatch, SetStateAction } from "react";
 
 export const usePolygonHistory = (
   selectedPolygon: google.maps.Polygon | null,
   polygonPaths: { polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[],
-  setPolygonPaths: React.Dispatch<
-    React.SetStateAction<{ polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]>
-  >
+  setPolygonPaths: Dispatch<SetStateAction<{ polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]>>
 ) => {
-  const [polygonHistory, setHistory] = useState<
-    { polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]
-  >([]);
+  const [polygonHistory, setHistory] = useState<{ polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]>(
+    []
+  );
 
-  const saveToHistory = (
-    polygon: google.maps.Polygon,
-    path: google.maps.LatLngLiteral[]
-  ) => {
+  const saveToHistory = (polygon: google.maps.Polygon, path: google.maps.LatLngLiteral[]) => {
     setHistory((prevHistory) => [...prevHistory, { polygon, path }]);
     // polygonPaths を更新
     setPolygonPaths((prevPolygonPaths) =>
-      prevPolygonPaths.map((polygonPath) =>
-        polygonPath.polygon === polygon ? { polygon, path } : polygonPath
-      )
+      prevPolygonPaths.map((polygonPath) => (polygonPath.polygon === polygon ? { polygon, path } : polygonPath))
     );
   };
 
@@ -31,9 +24,7 @@ export const usePolygonHistory = (
       // polygonPaths を更新
       setPolygonPaths((prevPolygonPaths) =>
         prevPolygonPaths.map((polygonPath) =>
-          polygonPath.polygon === selectedPolygon
-            ? { ...polygonPath, path: lastState.path }
-            : polygonPath
+          polygonPath.polygon === selectedPolygon ? { ...polygonPath, path: lastState.path } : polygonPath
         )
       );
 

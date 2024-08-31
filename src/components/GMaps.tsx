@@ -9,19 +9,25 @@ const center = {
 };
 
 type GMapProps = {
-  sheetId: string;
-  sheetName: string;
+  memberSheetId: string;
+  memberSheetName: string;
+  colorSheetId: string;
+  colorSheetName: string;
 };
 
 export const GMap: FC<GMapProps> = (props) => {
-  const { sheetId, sheetName } = props;
+  const { memberSheetId, memberSheetName, colorSheetId, colorSheetName } = props;
   const toast = useToast();
-  const { pins, loading, error } = useSpreadsheetData(sheetId, sheetName);
-  const { mapRef, handlePolygonDelete, handleCopyPins, selectedPolygon, setPolygonColor, polygonColor, handleUndo, handleSetPolygonColor } = useGoogleMap(
-    center,
-    pins,
-    toast
-  );
+  const { pins, loading, error } = useSpreadsheetData(memberSheetId, memberSheetName, colorSheetId, colorSheetName);
+  const {
+    mapRef,
+    handlePolygonDelete,
+    handleCopyPins,
+    selectedPolygon,
+    polygonColor,
+    handleUndo,
+    handleSetPolygonColor,
+  } = useGoogleMap(center, pins, toast);
 
   if (loading) return <div>Loading...</div>;
   if (error) return <div>Error: {error}</div>;

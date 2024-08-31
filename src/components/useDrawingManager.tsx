@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, Dispatch, SetStateAction } from "react";
 
 export const useDrawingManager = (
   map: google.maps.Map | null,
@@ -6,17 +6,10 @@ export const useDrawingManager = (
   toast: any,
   setSelectedPolygon: (polygon: google.maps.Polygon | null) => void,
   polygonPaths: { polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[],
-  setPolygonPaths: React.Dispatch<
-    React.SetStateAction<{ polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]>
-  >,
+  setPolygonPaths: Dispatch<SetStateAction<{ polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]>>,
   labels: { [key: string]: google.maps.InfoWindow },
-  setLabels: React.Dispatch<
-    React.SetStateAction<{ [key: string]: google.maps.InfoWindow }>
-  >,
-  saveToHistory: (
-    polygon: google.maps.Polygon,
-    path: google.maps.LatLngLiteral[]
-  ) => void,
+  setLabels: Dispatch<SetStateAction<{ [key: string]: google.maps.InfoWindow }>>,
+  saveToHistory: (polygon: google.maps.Polygon, path: google.maps.LatLngLiteral[]) => void,
   polygonColor: string
 ) => {
   const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(null);
@@ -55,26 +48,29 @@ export const useDrawingManager = (
       polygon.setEditable(true);
       polygon.setOptions({ draggable: true });
 
-      const initialPath = polygon.getPath().getArray().map((latlng) => ({
-        lat: latlng.lat(),
-        lng: latlng.lng(),
-      }));
+      const initialPath = polygon
+        .getPath()
+        .getArray()
+        .map((latlng) => ({
+          lat: latlng.lat(),
+          lng: latlng.lng(),
+        }));
 
       // polygonPaths を更新
-      setPolygonPaths((prevPolygonPaths) => [
-        ...prevPolygonPaths,
-        { polygon, path: initialPath },
-      ]);
+      setPolygonPaths((prevPolygonPaths) => [...prevPolygonPaths, { polygon, path: initialPath }]);
 
       saveToHistory(polygon, initialPath); // polygonを渡す
 
       // ドラッグ終了時に履歴を保存
       google.maps.event.addListener(polygon, "dragend", () => {
         isDragging = false;
-        const newPath = polygon.getPath().getArray().map((latlng) => ({
-          lat: latlng.lat(),
-          lng: latlng.lng(),
-        }));
+        const newPath = polygon
+          .getPath()
+          .getArray()
+          .map((latlng) => ({
+            lat: latlng.lat(),
+            lng: latlng.lng(),
+          }));
         saveToHistory(polygon, newPath); // polygonを渡す
 
         // polygonPaths を更新
@@ -89,10 +85,13 @@ export const useDrawingManager = (
       google.maps.event.addListener(polygon.getPath(), "set_at", () => {
         if (isDragging) return;
 
-        const newPath = polygon.getPath().getArray().map((latlng) => ({
-          lat: latlng.lat(),
-          lng: latlng.lng(),
-        }));
+        const newPath = polygon
+          .getPath()
+          .getArray()
+          .map((latlng) => ({
+            lat: latlng.lat(),
+            lng: latlng.lng(),
+          }));
         saveToHistory(polygon, newPath); // polygonを渡す
 
         // polygonPaths を更新
@@ -104,10 +103,13 @@ export const useDrawingManager = (
       });
 
       google.maps.event.addListener(polygon.getPath(), "insert_at", () => {
-        const newPath = polygon.getPath().getArray().map((latlng) => ({
-          lat: latlng.lat(),
-          lng: latlng.lng(),
-        }));
+        const newPath = polygon
+          .getPath()
+          .getArray()
+          .map((latlng) => ({
+            lat: latlng.lat(),
+            lng: latlng.lng(),
+          }));
         saveToHistory(polygon, newPath); // polygonを渡す
 
         // polygonPaths を更新
@@ -123,7 +125,7 @@ export const useDrawingManager = (
         setSelectedPolygon(polygon);
       });
     });
-  }, [map]);
+  }, [map, drawingManager, polygonColor, saveToHistory, setPolygonPaths, setSelectedPolygon]);
 
   useEffect(() => {
     if (drawingManager) {

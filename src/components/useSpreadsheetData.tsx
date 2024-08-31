@@ -12,20 +12,21 @@ export type Pin = {
   color: string;
 };
 
-export const useSpreadsheetData = (spreadsheetId: string, sheetName: string) => {
+export const useSpreadsheetData = (
+  memberSpreadsheetId: string,
+  memberSheetName: string,
+  colorSpreadsheetId: string,
+  colorSheetName: string
+) => {
   const [pins, setPins] = useState<Pin[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
 
-  // 200種類の色を生成
-  //const pinColors = generateColors(200);
-  const pinColors = generateDarkColors(200);
-
   useEffect(() => {
     const fetchSpreadsheetData = async () => {
       try {
-        const response = await axios.get(
-          `https://sheets.googleapis.com/v4/spreadsheets/${spreadsheetId}/values/${sheetName}!A3:AB`,
+        const memberResponse = await axios.get(
+          `https://sheets.googleapis.com/v4/spreadsheets/${memberSpreadsheetId}/values/${memberSheetName}!A3:AB`,
           {
             params: {
               key: import.meta.env.VITE_GOOGLE_SHEETS_API_KEY,
@@ -33,7 +34,20 @@ export const useSpreadsheetData = (spreadsheetId: string, sheetName: string) => 
           }
         );
 
-        const fetchedPins = response.data.values.map((row: any) => ({
+        const colorResponse = await axios.get(
+          `https://sheets.googleapis.com/v4/spreadsheets/${colorSpreadsheetId}/values/${colorSheetName}!E2:E`,
+          {
+            params: {
+              key: import.meta.env.VITE_GOOGLE_SHEETS_API_KEY,
+            },
+          }
+        );
+
+        const colors = colorResponse.data.values.map((row: string) => {
+          return row[0];
+        });
+
+        const fetchedPins = memberResponse.data.values.map((row: any) => ({
           id: row[0], // 組合員コードをIDとして使用
           name: row[8], // 組合員名を名前として使用
           lat: parseFloat(row[17]), // 緯度
@@ -41,7 +55,7 @@ export const useSpreadsheetData = (spreadsheetId: string, sheetName: string) => 
           status: "active", // ステータスは仮に設定
           course: row[3], // コース
           delivery_order: row[26],
-          color: pinColors[parseInt(row[27]) % 200], // コマの番号に基づいて色を設定
+          color: colors[parseInt(row[27]) % 200], // コマの番号に基づいて色を設定
         }));
 
         setPins(fetchedPins);
@@ -54,33 +68,7 @@ export const useSpreadsheetData = (spreadsheetId: string, sheetName: string) => 
     };
 
     fetchSpreadsheetData();
-  }, [spreadsheetId, sheetName]);
+  }, [memberSpreadsheetId, memberSheetName, colorSpreadsheetId, colorSheetName]);
 
   return { pins, loading, error };
 };
-
-// 色生成関数
-function generateColors(numColors: number) {
-  const colors = [];
-  for (let i = 0; i < numColors; i++) {
-    const color = `#${Math.floor(Math.random() * 16777215)
-      .toString(16)
-      .padStart(6, "0")}`;
-    colors.push(color);
-  }
-  return colors;
-}
-
-// 暗い色生成関数
-function generateDarkColors(numColors: number) {
-  const colors = [];
-  const color_threashhold = 170;
-  for (let i = 0; i < numColors; i++) {
-    const red = Math.floor(Math.random() * color_threashhold); // 0〜100の暗い赤
-    const green = Math.floor(Math.random() * color_threashhold); // 0〜100の暗い緑
-    const blue = Math.floor(Math.random() * color_threashhold); // 0〜100の暗い青
-    const color = `#${red.toString(16).padStart(2, "0")}${green.toString(16).padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
-    colors.push(color);
-  }
-  return colors;
-}

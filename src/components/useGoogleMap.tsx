@@ -5,11 +5,7 @@ import { useDrawingManager } from "./useDrawingManager";
 import { usePolygonHistory } from "./usePolygonHistory";
 import type { Pin } from "./useSpreadsheetData";
 
-export const useGoogleMap = (
-  center: google.maps.LatLngLiteral,
-  pins: Pin[],
-  toast: any
-) => {
+export const useGoogleMap = (center: google.maps.LatLngLiteral, pins: Pin[], toast: any) => {
   const mapRef = useRef<HTMLDivElement | null>(null);
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [selectedPolygon, setSelectedPolygon] = useState<google.maps.Polygon | null>(null);
@@ -21,7 +17,6 @@ export const useGoogleMap = (
   const [labels, setLabels] = useState<{ [key: string]: google.maps.InfoWindow }>({});
 
   useEffect(() => {
-
     if (!mapRef.current) {
       //console.error("mapRef is null at the start of useEffect");
       return;
@@ -48,15 +43,15 @@ export const useGoogleMap = (
         setMapInstance(map);
       })
       .catch(console.error);
+    // FIXME
+    // mapRef.current を監視対象にしないと地図が出ないため、
+    // linterエラーを下記で回避
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center, mapRef.current]);
 
-  const markerElements = useMarkers(mapInstance, pins, toast);
+  const markerElements = useMarkers(mapInstance, pins);
 
-  const { saveToHistory, handleUndo } = usePolygonHistory(
-    selectedPolygon,
-    polygonPaths,
-    setPolygonPaths
-  );
+  const { saveToHistory, handleUndo } = usePolygonHistory(selectedPolygon, polygonPaths, setPolygonPaths);
 
   useDrawingManager(
     mapInstance,
@@ -75,9 +70,7 @@ export const useGoogleMap = (
     if (selectedPolygon) {
       selectedPolygon.setMap(null);
       setSelectedPolygon(null);
-      setPolygonPaths((prevPolygonPaths) =>
-        prevPolygonPaths.filter((p) => p.polygon !== selectedPolygon)
-      );
+      setPolygonPaths((prevPolygonPaths) => prevPolygonPaths.filter((p) => p.polygon !== selectedPolygon));
     }
   };
 
@@ -85,15 +78,13 @@ export const useGoogleMap = (
     if (selectedPolygon) {
       const polygonBounds = selectedPolygon.getPath();
       const pinsInsidePolygon = pins.filter((pin) =>
-        google.maps.geometry.poly.containsLocation(
-          new google.maps.LatLng(pin.lat, pin.lng),
-          polygonBounds
-        )
+        google.maps.geometry.poly.containsLocation(new google.maps.LatLng(pin.lat, pin.lng), polygonBounds)
       );
 
       const pinNames = pinsInsidePolygon.map((pin) => pin.name).join(", ");
 
-      navigator.clipboard.writeText(pinNames)
+      navigator.clipboard
+        .writeText(pinNames)
         .then(() => {
           toast({
             title: "コピー完了",
@@ -124,9 +115,7 @@ export const useGoogleMap = (
       // 保存するために polygonPaths を更新
       setPolygonPaths((prevPolygonPaths) =>
         prevPolygonPaths.map((polygonPath) =>
-          polygonPath.polygon === selectedPolygon
-            ? { polygon: selectedPolygon, path: polygonPath.path }
-            : polygonPath
+          polygonPath.polygon === selectedPolygon ? { polygon: selectedPolygon, path: polygonPath.path } : polygonPath
         )
       );
     }
