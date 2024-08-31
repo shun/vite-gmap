@@ -2,28 +2,51 @@ import { useState, useEffect } from "react";
 
 export const usePolygonHistory = (
   selectedPolygon: google.maps.Polygon | null,
-  setPolygonHistory: React.Dispatch<
-    React.SetStateAction<google.maps.LatLngLiteral[][]>
+  polygonPaths: { polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[],
+  setPolygonPaths: React.Dispatch<
+    React.SetStateAction<{ polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]>
   >
 ) => {
   const [polygonHistory, setHistory] = useState<
-    google.maps.LatLngLiteral[][]
+    { polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]
   >([]);
 
-  const saveToHistory = (path: google.maps.LatLngLiteral[]) => {
-    setHistory((prevHistory) => [...prevHistory, path]);
-    setPolygonHistory((prevHistory) => [...prevHistory, path]);
+  const saveToHistory = (
+    polygon: google.maps.Polygon,
+    path: google.maps.LatLngLiteral[]
+  ) => {
+    setHistory((prevHistory) => [...prevHistory, { polygon, path }]);
+    // polygonPaths を更新
+    setPolygonPaths((prevPolygonPaths) =>
+      prevPolygonPaths.map((polygonPath) =>
+        polygonPath.polygon === polygon ? { polygon, path } : polygonPath
+      )
+    );
   };
 
   const handleUndo = () => {
     if (polygonHistory.length > 1 && selectedPolygon) {
       const lastState = polygonHistory[polygonHistory.length - 2];
+
+      // polygonPaths を更新
+      setPolygonPaths((prevPolygonPaths) =>
+        prevPolygonPaths.map((polygonPath) =>
+          polygonPath.polygon === selectedPolygon
+            ? { ...polygonPath, path: lastState.path }
+            : polygonPath
+        )
+      );
+
+      // selectedPolygon のパスを更新 (google.maps.LatLng オブジェクトを使用)
       const path = selectedPolygon.getPath();
       path.clear();
-      lastState.forEach((latLng) => {
-        path.push(new google.maps.LatLng(latLng.lat, latLng.lng));
+      lastState.path.forEach((latLng) => {
+        path.push(new google.maps.LatLng(latLng.lat, latLng.lng)); // google.maps.LatLng を使用する
       });
+
       setHistory(polygonHistory.slice(0, -1));
+    } else {
+      console.warn("Nothing to undo");
     }
   };
 

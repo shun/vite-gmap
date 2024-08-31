@@ -14,15 +14,17 @@ export const useGoogleMap = (
   const [mapInstance, setMapInstance] = useState<google.maps.Map | null>(null);
   const [selectedPolygon, setSelectedPolygon] = useState<google.maps.Polygon | null>(null);
   const [polygonColor, setPolygonColor] = useState("#FF0000");
-  const [polygons, setPolygons] = useState<google.maps.Polygon[]>([]);
+  // ポリゴンとそのパスを管理する状態
+  const [polygonPaths, setPolygonPaths] = useState<
+    { polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]
+  >([]);
   const [labels, setLabels] = useState<{ [key: string]: google.maps.InfoWindow }>({});
 
   useEffect(() => {
-    console.log("mapRef:", mapRef.current);
 
     if (!mapRef.current) {
-        console.error("mapRef is null at the start of useEffect");
-        return;
+      //console.error("mapRef is null at the start of useEffect");
+      return;
     }
 
     const loader = new Loader({
@@ -50,25 +52,74 @@ export const useGoogleMap = (
 
   const markerElements = useMarkers(mapInstance, pins, toast);
 
+  const { saveToHistory, handleUndo } = usePolygonHistory(
+    selectedPolygon,
+    polygonPaths,
+    setPolygonPaths
+  );
+
   useDrawingManager(
     mapInstance,
     markerElements,
     toast,
     setSelectedPolygon,
-    setPolygons,
+    polygonPaths, // polygonPaths を渡す
+    setPolygonPaths, // setPolygonPaths を渡す
     labels,
     setLabels,
-    usePolygonHistory(selectedPolygon, setPolygons).saveToHistory,
+    saveToHistory,
     polygonColor
   );
 
-  const { handleUndo } = usePolygonHistory(selectedPolygon, setPolygons);
+  const handlePolygonDelete = () => {
+    if (selectedPolygon) {
+      selectedPolygon.setMap(null);
+      setSelectedPolygon(null);
+      setPolygonPaths((prevPolygonPaths) =>
+        prevPolygonPaths.filter((p) => p.polygon !== selectedPolygon)
+      );
+    }
+  };
+
+  const handleCopyPins = () => {
+    if (selectedPolygon) {
+      const polygonBounds = selectedPolygon.getPath();
+      const pinsInsidePolygon = pins.filter((pin) =>
+        google.maps.geometry.poly.containsLocation(
+          new google.maps.LatLng(pin.lat, pin.lng),
+          polygonBounds
+        )
+      );
+
+      const pinNames = pinsInsidePolygon.map((pin) => pin.name).join(", ");
+
+      navigator.clipboard.writeText(pinNames)
+        .then(() => {
+          toast({
+            title: "コピー完了",
+            status: "success",
+            duration: 3000,
+            isClosable: true,
+          });
+        })
+        .catch((err) => {
+          console.error("Failed to copy: ", err);
+          toast({
+            title: "コピー失敗",
+            status: "error",
+            duration: 3000,
+            isClosable: true,
+          });
+        });
+    }
+  };
+
 
   return {
     mapRef,
     mapInstance,
-    handlePolygonDelete: () => {/* implementation */},
-    handleCopyPins: () => {/* implementation */},
+    handlePolygonDelete,
+    handleCopyPins,
     selectedPolygon,
     setPolygonColor,
     polygonColor,

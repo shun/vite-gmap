@@ -1,24 +1,30 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 export const useDrawingManager = (
   map: google.maps.Map | null,
   markers: google.maps.marker.AdvancedMarkerElement[],
   toast: any,
   setSelectedPolygon: (polygon: google.maps.Polygon | null) => void,
-  setPolygons: React.Dispatch<React.SetStateAction<google.maps.Polygon[]>>,
+  polygonPaths: { polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[],
+  setPolygonPaths: React.Dispatch<
+    React.SetStateAction<{ polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]>
+  >,
   labels: { [key: string]: google.maps.InfoWindow },
   setLabels: React.Dispatch<
     React.SetStateAction<{ [key: string]: google.maps.InfoWindow }>
   >,
-  setPolygonHistory: React.Dispatch<
-    React.SetStateAction<google.maps.LatLngLiteral[][]>
-  >,
+  saveToHistory: (
+    polygon: google.maps.Polygon,
+    path: google.maps.LatLngLiteral[]
+  ) => void,
   polygonColor: string
 ) => {
-  useEffect(() => {
-    if (!map) return;
+  const [drawingManager, setDrawingManager] = useState<google.maps.drawing.DrawingManager | null>(null);
 
-    const drawingManager = new google.maps.drawing.DrawingManager({
+  useEffect(() => {
+    if (!map || drawingManager) return;
+
+    const newDrawingManager = new google.maps.drawing.DrawingManager({
       drawingMode: null,
       drawingControl: true,
       drawingControlOptions: {
@@ -26,27 +32,107 @@ export const useDrawingManager = (
         drawingModes: ["polygon"],
       },
       polygonOptions: {
-        strokeColor: "#FF0000",
+        strokeColor: polygonColor,
         strokeOpacity: 0.8,
         strokeWeight: 2,
-        fillColor: "#FF0000",
+        fillColor: polygonColor,
         fillOpacity: 0.35,
         editable: true,
       },
     });
 
-    drawingManager.setMap(map);
+    newDrawingManager.setMap(map);
+    setDrawingManager(newDrawingManager);
 
-    google.maps.event.addListener(drawingManager, "polygoncomplete", (polygon) => {
+    google.maps.event.addListener(newDrawingManager, "polygoncomplete", (polygon) => {
+      let isDragging = false;
+
+      // ドラッグ開始時に isDragging を true に設定
+      google.maps.event.addListener(polygon, "dragstart", () => {
+        isDragging = true;
+      });
+
       polygon.setEditable(true);
       polygon.setOptions({ draggable: true });
 
-      // ポリゴンのセットアップと履歴管理
-      // ...
+      const initialPath = polygon.getPath().getArray().map((latlng) => ({
+        lat: latlng.lat(),
+        lng: latlng.lng(),
+      }));
 
-      setPolygons((prevPolygons) => [...prevPolygons, polygon]);
+      // polygonPaths を更新
+      setPolygonPaths((prevPolygonPaths) => [
+        ...prevPolygonPaths,
+        { polygon, path: initialPath },
+      ]);
 
-      // その後の処理を追加
+      saveToHistory(polygon, initialPath); // polygonを渡す
+
+      // ドラッグ終了時に履歴を保存
+      google.maps.event.addListener(polygon, "dragend", () => {
+        isDragging = false;
+        const newPath = polygon.getPath().getArray().map((latlng) => ({
+          lat: latlng.lat(),
+          lng: latlng.lng(),
+        }));
+        saveToHistory(polygon, newPath); // polygonを渡す
+
+        // polygonPaths を更新
+        setPolygonPaths((prevPolygonPaths) =>
+          prevPolygonPaths.map((polygonPath) =>
+            polygonPath.polygon === polygon ? { polygon, path: newPath } : polygonPath
+          )
+        );
+      });
+
+      // 頂点編集時に履歴を保存
+      google.maps.event.addListener(polygon.getPath(), "set_at", () => {
+        if (isDragging) return;
+
+        const newPath = polygon.getPath().getArray().map((latlng) => ({
+          lat: latlng.lat(),
+          lng: latlng.lng(),
+        }));
+        saveToHistory(polygon, newPath); // polygonを渡す
+
+        // polygonPaths を更新
+        setPolygonPaths((prevPolygonPaths) =>
+          prevPolygonPaths.map((polygonPath) =>
+            polygonPath.polygon === polygon ? { polygon, path: newPath } : polygonPath
+          )
+        );
+      });
+
+      google.maps.event.addListener(polygon.getPath(), "insert_at", () => {
+        const newPath = polygon.getPath().getArray().map((latlng) => ({
+          lat: latlng.lat(),
+          lng: latlng.lng(),
+        }));
+        saveToHistory(polygon, newPath); // polygonを渡す
+
+        // polygonPaths を更新
+        setPolygonPaths((prevPolygonPaths) =>
+          prevPolygonPaths.map((polygonPath) =>
+            polygonPath.polygon === polygon ? { polygon, path: newPath } : polygonPath
+          )
+        );
+      });
+
+      // ポリゴンがクリックされた時の処理
+      google.maps.event.addListener(polygon, "click", () => {
+        setSelectedPolygon(polygon);
+      });
     });
-  }, [map, markers, toast, setSelectedPolygon, setPolygons, labels, setLabels, setPolygonHistory, polygonColor]);
+  }, [map]);
+
+  useEffect(() => {
+    if (drawingManager) {
+      drawingManager.setOptions({
+        polygonOptions: {
+          strokeColor: polygonColor,
+          fillColor: polygonColor,
+        },
+      });
+    }
+  }, [polygonColor, drawingManager]);
 };
