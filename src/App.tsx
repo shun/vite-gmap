@@ -5,10 +5,7 @@ import "./App.css";
 function App() {
   return (
     <Box p={4} height="100vh" width="100vw">
-      <GMap
-        sheetId={import.meta.env.VITE_GOOGLE_SHEETS_ID}
-        sheetName="メインデータ"
-      />
+      <GMap sheetId={import.meta.env.VITE_GOOGLE_SHEETS_ID} sheetName="メインデータ" />
     </Box>
   );
 }

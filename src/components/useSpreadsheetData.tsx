@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-type Pin = {
+export type Pin = {
   id: string;
   name: string;
   lat: number;
@@ -47,7 +47,7 @@ export const useSpreadsheetData = (spreadsheetId: string, sheetName: string) => 
         setPins(fetchedPins);
         setLoading(false);
       } catch (error) {
-        console.error(error)
+        console.error(error);
         setError("スプレッドシートのデータ取得に失敗しました。");
         setLoading(false);
       }
@@ -63,7 +63,9 @@ export const useSpreadsheetData = (spreadsheetId: string, sheetName: string) => 
 function generateColors(numColors: number) {
   const colors = [];
   for (let i = 0; i < numColors; i++) {
-    const color = `#${Math.floor(Math.random() * 16777215).toString(16).padStart(6, '0')}`;
+    const color = `#${Math.floor(Math.random() * 16777215)
+      .toString(16)
+      .padStart(6, "0")}`;
     colors.push(color);
   }
   return colors;
@@ -77,7 +79,7 @@ function generateDarkColors(numColors: number) {
     const red = Math.floor(Math.random() * color_threashhold); // 0〜100の暗い赤
     const green = Math.floor(Math.random() * color_threashhold); // 0〜100の暗い緑
     const blue = Math.floor(Math.random() * color_threashhold); // 0〜100の暗い青
-    const color = `#${red.toString(16).padStart(2, '0')}${green.toString(16).padStart(2, '0')}${blue.toString(16).padStart(2, '0')}`;
+    const color = `#${red.toString(16).padStart(2, "0")}${green.toString(16).padStart(2, "0")}${blue.toString(16).padStart(2, "0")}`;
     colors.push(color);
   }
   return colors;
