@@ -2,7 +2,6 @@ import { useState, Dispatch, SetStateAction } from "react";
 
 export const usePolygonHistory = (
   selectedPolygon: google.maps.Polygon | null,
-  polygonPaths: { polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[],
   setPolygonPaths: Dispatch<SetStateAction<{ polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]>>
 ) => {
   const [polygonHistory, setHistory] = useState<{ polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]>(

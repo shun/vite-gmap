@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Pin } from "./useSpreadsheetData";
 
+const DEFAULT_GLYPH_COLOR = "#ffffff";
 export const useMarkers = (map: google.maps.Map | null, pins: Pin[]) => {
   const [markerElements, setMarkerElements] = useState<google.maps.marker.AdvancedMarkerElement[]>([]);
 
@@ -12,7 +13,7 @@ export const useMarkers = (map: google.maps.Map | null, pins: Pin[]) => {
         scale: 1.0,
         background: pin.color,
         borderColor: pin.color,
-        glyphColor: "#ffffff",
+        glyphColor: DEFAULT_GLYPH_COLOR,
         glyph: pin.delivery_order,
       });
 

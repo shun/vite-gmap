@@ -2,13 +2,8 @@ import { useEffect, useState, Dispatch, SetStateAction } from "react";
 
 export const useDrawingManager = (
   map: google.maps.Map | null,
-  markers: google.maps.marker.AdvancedMarkerElement[],
-  toast: any,
   setSelectedPolygon: (polygon: google.maps.Polygon | null) => void,
-  polygonPaths: { polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[],
   setPolygonPaths: Dispatch<SetStateAction<{ polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]>>,
-  labels: { [key: string]: google.maps.InfoWindow },
-  setLabels: Dispatch<SetStateAction<{ [key: string]: google.maps.InfoWindow }>>,
   saveToHistory: (polygon: google.maps.Polygon, path: google.maps.LatLngLiteral[]) => void,
   polygonColor: string
 ) => {
@@ -22,7 +17,7 @@ export const useDrawingManager = (
       drawingControl: true,
       drawingControlOptions: {
         position: google.maps.ControlPosition.TOP_CENTER,
-        drawingModes: ["polygon"],
+        drawingModes: [google.maps.drawing.OverlayType.POLYGON],
       },
       polygonOptions: {
         strokeColor: polygonColor,
@@ -37,7 +32,7 @@ export const useDrawingManager = (
     newDrawingManager.setMap(map);
     setDrawingManager(newDrawingManager);
 
-    google.maps.event.addListener(newDrawingManager, "polygoncomplete", (polygon) => {
+    google.maps.event.addListener(newDrawingManager, "polygoncomplete", (polygon: any) => {
       let isDragging = false;
 
       // ドラッグ開始時に isDragging を true に設定
@@ -51,7 +46,7 @@ export const useDrawingManager = (
       const initialPath = polygon
         .getPath()
         .getArray()
-        .map((latlng) => ({
+        .map((latlng: any) => ({
           lat: latlng.lat(),
           lng: latlng.lng(),
         }));
@@ -67,7 +62,7 @@ export const useDrawingManager = (
         const newPath = polygon
           .getPath()
           .getArray()
-          .map((latlng) => ({
+          .map((latlng: any) => ({
             lat: latlng.lat(),
             lng: latlng.lng(),
           }));
@@ -88,7 +83,7 @@ export const useDrawingManager = (
         const newPath = polygon
           .getPath()
           .getArray()
-          .map((latlng) => ({
+          .map((latlng: any) => ({
             lat: latlng.lat(),
             lng: latlng.lng(),
           }));
@@ -106,7 +101,7 @@ export const useDrawingManager = (
         const newPath = polygon
           .getPath()
           .getArray()
-          .map((latlng) => ({
+          .map((latlng: any) => ({
             lat: latlng.lat(),
             lng: latlng.lng(),
           }));

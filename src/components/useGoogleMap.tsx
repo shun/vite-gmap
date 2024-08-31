@@ -14,7 +14,6 @@ export const useGoogleMap = (center: google.maps.LatLngLiteral, pins: Pin[], toa
   const [polygonPaths, setPolygonPaths] = useState<
     { polygon: google.maps.Polygon; path: google.maps.LatLngLiteral[] }[]
   >([]);
-  const [labels, setLabels] = useState<{ [key: string]: google.maps.InfoWindow }>({});
 
   useEffect(() => {
     if (!mapRef.current) {
@@ -49,19 +48,14 @@ export const useGoogleMap = (center: google.maps.LatLngLiteral, pins: Pin[], toa
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [center, mapRef.current]);
 
-  const markerElements = useMarkers(mapInstance, pins);
+  useMarkers(mapInstance, pins);
 
-  const { saveToHistory, handleUndo } = usePolygonHistory(selectedPolygon, polygonPaths, setPolygonPaths);
+  const { saveToHistory, handleUndo } = usePolygonHistory(selectedPolygon, setPolygonPaths);
 
   useDrawingManager(
     mapInstance,
-    markerElements,
-    toast,
     setSelectedPolygon,
-    polygonPaths, // polygonPaths を渡す
     setPolygonPaths, // setPolygonPaths を渡す
-    labels,
-    setLabels,
     saveToHistory,
     polygonColor
   );
@@ -76,10 +70,10 @@ export const useGoogleMap = (center: google.maps.LatLngLiteral, pins: Pin[], toa
 
   const handleCopyPins = () => {
     if (selectedPolygon) {
-      const polygonBounds = selectedPolygon.getPath();
-      const pinsInsidePolygon = pins.filter((pin) =>
-        google.maps.geometry.poly.containsLocation(new google.maps.LatLng(pin.lat, pin.lng), polygonBounds)
-      );
+      const pinsInsidePolygon = pins.filter((pin) => {
+        const latLng = new google.maps.LatLng(pin.lat, pin.lng);
+        return google.maps.geometry.poly.containsLocation(latLng, selectedPolygon);
+      });
 
       const pinNames = pinsInsidePolygon.map((pin) => pin.name).join(", ");
 
@@ -91,6 +85,7 @@ export const useGoogleMap = (center: google.maps.LatLngLiteral, pins: Pin[], toa
             status: "success",
             duration: 3000,
             isClosable: true,
+            position: "top",
           });
         })
         .catch((err) => {
@@ -100,6 +95,7 @@ export const useGoogleMap = (center: google.maps.LatLngLiteral, pins: Pin[], toa
             status: "error",
             duration: 3000,
             isClosable: true,
+            position: "top",
           });
         });
     }
